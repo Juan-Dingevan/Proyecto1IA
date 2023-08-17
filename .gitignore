@@ -1,0 +1,5 @@
+# Ignore everything
+gameIA/*
+
+# But not these files...
+!gameIA/agent/
