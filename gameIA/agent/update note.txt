@@ -1,0 +1,72 @@
+:- module(beliefs_update,
+	  [
+	    update_beliefs/1,
+	    time/1,
+	    node/5,
+	    at/3,
+		direction/1
+	  ]).
+
+:- dynamic time/1, node/5, at/3, direction/1.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TO-DO
+%
+% update_beliefs(+Perc)
+%
+% IMPORTANTE: Debe exportarse todo predicado dinÃ¡mico (creencia)
+% manipulado por la actualizaciÃ³n de creencias, para que puedan ser
+% consultado por el resto del cÃ³digo del agente.
+%
+% El parÃ¡metro Perc recibe una lista con el siguiente formato: [N1,...,Nk,A1,...Ap,Time,Dir]
+% donde:
+% N1 a Nk son k elementos (k>0) de la forma node(Id, PosX, PosY, Costo, Conexiones),
+% A1 a Ap son p elementos (p>0) de la forma at(IdNodo, TipoEntidad, IdEntidad),
+% Time es el functor time(T), donde T es el tiempo actual (descendente) de la partida.
+% Dir es el functor direction(D), donde D âˆˆ {w, s, a, d}.
+%
+% Este agente bÃ¡sico, al recibir una nueva percepcion olvida todo lo que tenÃ­a guardado en su estado interno
+% Y almance la informaciÃ³n de la percepciÃ³n nueva.
+%
+% Pueden realizar todos los cambios de implementaciÃ³n que consideren necesarios.
+% Esta implementaciÃ³n busca ser un marco para facilitar la resoluciÃ³n del proyecto.
+
+
+update_beliefs(Perc):-
+	findall(time(_), Perc, TIME), update_time(TIME),
+	findall(direction(_), Perc, DIRECTION), update_direction(DIRECTION),
+	findall(node(_,_,_,_,_),Perc,NODE), update_node(NODE),
+	findall(at(_,_,_),Perc, AT), update_at(AT).
+
+
+%caso base
+update_at([]).
+
+% si el elemento ya existe en las creencias y coincide en su totalidad
+update_at([At|Rest]):-
+	At, update_at(Rest).
+
+%si el elemento ya existe en las creencias, pero sus nodos no unifican
+update_at([At|Rest]):- At=at(NewIdNodo, TipoEntidad, IdEntidad), at(IdNodo, TipoEntidad, IdEntidad), NewIdNodo \= IdNodo,
+	retractall(at(IdNodo, TipoEntidad, IdEntidad)),
+	assert(at(NewIdNodo, TipoEntidad, IdEntidad)), update_at(Rest).
+
+%si el elemento no existe en las creencias
+update_at([At|Rest]):- not(At), assert(At), update_at(Rest).
+
+
+
+%caso base
+update_node([]).
+
+
+%actualiza los nodos
+update_node(Node):- retractall(node(_,_,_,_,_)), forall(member(Rel,Node), assert(Rel)).
+
+%actualiza el tiempo
+update_time(Time):-
+		retractall(time(_)), forall(member(Rel, Time), assert(Rel)).
+
+%actualiza la direccion
+update_direction(Direction):-
+		retractall(direction(_)), forall(member(Rel, Direction), assert(Rel)).
