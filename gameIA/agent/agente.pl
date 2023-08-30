@@ -19,8 +19,10 @@
 
 :- dynamic plandesplazamiento/1.
 :- dynamic firstmovementdone/1.
+:- dynamic cant_girar_seguidos/1.
 
-deseables([copa, cofre, diamante, pocion, reloj(_X)]).
+deseables([copa, cofre, diamante, reloj(_X), pocion]).
+cant_girar_seguidos(0).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % run(+Perc, -Action, -Text, -Beliefs)
@@ -105,16 +107,10 @@ decide_action(Action, 'Quiero levantar una copa...') :-
     node(MyNode, PosX, PosY, _, _),
     Action = levantar_tesoro(IdGold, PosX, PosY),
     retractall(at(MyNode, _, IdGold)),
-	retractall(plandesplazamiento(_)).
-
-% Me muevo a una posición vecina seleccionada de manera aleatoria.
-%decide_action(Action, 'Me muevo a la posicion de al lado...'):-
-%	at(MyNode, agente, me),
-%	node(MyNode, _, _, _, AdyList),
-%	length(AdyList, LenAdyList), LenAdyList > 0,
-%	random_member([IdAdyNode, _CostAdyNode], AdyList),
-%	!,
-%	Action = avanzar(IdAdyNode).
+	retractall(plandesplazamiento(_)),
+	
+	retractall(cant_girar_seguidos(_)),
+	assert(cant_girar_seguidos(0)).
 
 % Si tengo un plan de movimientos, ejecuto la siguiente acción.
 decide_action(Action, 'Avanzar...'):-
@@ -125,24 +121,53 @@ decide_action(Action, 'Avanzar...'):-
 	obtenerMovimiento(Plan, Destino, Resto),
 	retractall(plandesplazamiento(_)),
 	assert(plandesplazamiento(Resto)),
-	Action = Destino.
+	Action = Destino,
+
+	retractall(cant_girar_seguidos(_)),
+	assert(cant_girar_seguidos(0)).
 	
 % Si no tengo un plan guardado, busco uno nuevo.
 decide_action(Action, 'Avanzar con nuevo plan...'):-
  	busqueda_plan(Plan, _Destino, _Costo),
 	Plan \= [],
 	obtenerMovimiento(Plan, Action, Resto),
-	assert(plandesplazamiento(Resto)).
+	assert(plandesplazamiento(Resto)),
+
+	retractall(cant_girar_seguidos(_)),
+	assert(cant_girar_seguidos(0)).
 
 % Giro en sentido horario, para conocer mas terreno.
 decide_action(Action, 'Girar para conocer el territorio...'):-
+	cant_girar_seguidos(X),
+	X < 4,
+	
+	% Si ya se giro 4 veces seguidas, se dio una vuelta completa (y presumiblemente no
+	% se encontraron metas posibles), por tanto se opta por fallar y por caer en el caso de
+	% movimiento alteatorio.
+
 	direction(D),
-	girar(D, Action).
+	girar(D, Action),
+
+	retractall(cant_girar_seguidos(_)),
+	Y is X + 1
+	assert(cant_girar_seguidos(Y)).
 
 girar(w, girar(d)).
 girar(d, girar(s)).
 girar(s, girar(a)).
 girar(a, girar(w)).
+
+% Me muevo a una posición vecina seleccionada de manera aleatoria.
+decide_action(Action, 'Me muevo a la posicion de al lado...'):-
+	at(MyNode, agente, me),
+	node(MyNode, _, _, _, AdyList),
+	length(AdyList, LenAdyList), LenAdyList > 0,
+	random_member([IdAdyNode, _CostAdyNode], AdyList),
+	!,
+	Action = avanzar(IdAdyNode),
+	
+	retractall(cant_girar_seguidos(_)),
+	assert(cant_girar_seguidos(0)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
