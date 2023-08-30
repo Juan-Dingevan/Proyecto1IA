@@ -301,6 +301,16 @@ eliminarVecinosVisitados(Vecinos, Visitados, VecinosSinVisitar) :-
 	), VecinosSinVisitar).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% eliminarVecinosYaEnFrontera(+Vecinos, +Frontera, -VecinosSinFrontera)
+% Elimina a todos los vecinos que ya estan en la frontera
+eliminarVecinosYaEnFrontera(Vecinos, Frontera, VecinosSinFrontera) :-
+	findall(VecinoNoFrontera, (
+		VecinoNoFrontera = [ID, _],
+		member(VecinoNoFrontera, Vecinos),
+		not(member([ID, _], Frontera))
+	), VecinosSinFrontera).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % asertarRelacionesPadreHijo(+Padre, +Hijos)
 % Hace assert de la relacion padre(Hijo, Padre) entre el nodo Padre y todos los miembros de Hijos
 % Padre es un nodo Padre de forma [ID, Costo]
@@ -323,11 +333,15 @@ asertarRelacionesPadreHijo(Padre, Hijos) :-
 % Metas: Lista de ids de nodos metas.
 
 %Nota: por ahora no hacemos revision de visitados.
-agregar(FronteraSinNodo, Vecinos, NuevaFrontera, Visitados, NuevosVisitados, Nodo, Metas) :-
+agregar(FronteraSinNodo, Vecinos, NuevaFrontera, Visitados, Visitados, Nodo, Metas) :-
 	eliminarVecinosVisitados(Vecinos, Visitados, VecinosSinVisitar),
-	asertarRelacionesPadreHijo(Nodo, VecinosSinVisitar),
+	eliminarVecinosYaEnFrontera(Vecinos, FronteraSinNodo, VecinosSinFrontera),
+	asertarRelacionesPadreHijo(Nodo, VecinosSinFrontera),
 	vecinosConFn(VecinosSinVisitar, Metas, VecinosConFn),
 	append(VecinosConFn, FronteraSinNodo, FronteraDesordenada),
-	ordenar_por_costo(FronteraDesordenada, NuevaFrontera),
-	Visitados = NuevosVisitados. %TEMP
+	ordenar_por_costo(FronteraDesordenada, NuevaFrontera).
 	
+	%Estoy agregando nodos a la frontera varias veces: cuando genero los vecinos
+	% me fijo que no esten en visitados, pero no que no esten en la frontera.
+	% Idealmente, deberia fijarme que no esten con un costo inferior al que les calcule recien
+	% pero por ahora seria buena idea sencillamente podarlos de la frontera y ya.
