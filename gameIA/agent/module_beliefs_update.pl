@@ -44,7 +44,7 @@ update_beliefs(Perc):-
 	findall(A,(
 		member(A, Perc),
 		A = at(_, _, _)
-		), Ats), update_node(Ats),				% Obtenemos los at
+		), Ats), update_at(Ats),				% Obtenemos los at
 
 	member(at(AtAgenteID, agente, me), Ats),	% Obtenemos un at distinguido: el del agente
 
