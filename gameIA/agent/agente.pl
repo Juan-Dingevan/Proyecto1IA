@@ -20,6 +20,8 @@
 :- dynamic plandesplazamiento/1.
 :- dynamic firstmovementdone/1.
 
+deseables([copa, cofre, diamante, pocion, reloj(_X)]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % run(+Perc, -Action, -Text, -Beliefs)
 %
@@ -51,7 +53,7 @@
 
 run(Perc, Action, Text, Beliefs):-
 	update_beliefs(Perc), % implementado en module_beliefs_update
-	get_action(Action, Text),
+	decide_action(Action, Text),
 	
 	write('ACCION ENVIADA: '),
 	write(Action),
@@ -97,20 +99,22 @@ get_action(Action, Text) :-
 % Si estoy en la misma posición que una copa, intento levantarla.
 decide_action(Action, 'Quiero levantar una copa...') :-
     at(MyNode, agente, me),
-    at(MyNode, copa, IdGold),
+	at(MyNode, Deseable, IdGold),
+	deseables(Deseables),
+	member(Deseable, Deseables),
     node(MyNode, PosX, PosY, _, _),
     Action = levantar_tesoro(IdGold, PosX, PosY),
     retractall(at(MyNode, _, IdGold)),
 	retractall(plandesplazamiento(_)).
 
 % Me muevo a una posición vecina seleccionada de manera aleatoria.
-decide_action(Action, 'Me muevo a la posicion de al lado...'):-
-	at(MyNode, agente, me),
-	node(MyNode, _, _, _, AdyList),
-	length(AdyList, LenAdyList), LenAdyList > 0,
-	random_member([IdAdyNode, _CostAdyNode], AdyList),
-	!,
-	Action = avanzar(IdAdyNode).
+%decide_action(Action, 'Me muevo a la posicion de al lado...'):-
+%	at(MyNode, agente, me),
+%	node(MyNode, _, _, _, AdyList),
+%	length(AdyList, LenAdyList), LenAdyList > 0,
+%	random_member([IdAdyNode, _CostAdyNode], AdyList),
+%	!,
+%	Action = avanzar(IdAdyNode).
 
 % Si tengo un plan de movimientos, ejecuto la siguiente acción.
 decide_action(Action, 'Avanzar...'):-
@@ -132,17 +136,13 @@ decide_action(Action, 'Avanzar con nuevo plan...'):-
 
 % Giro en sentido horario, para conocer mas terreno.
 decide_action(Action, 'Girar para conocer el territorio...'):-
-	(
-		direction(w)
-		-> Action = girar(d)
-		; ( direction(d)
-			-> Action = girar(s)
-			; ( direction(s)
-				-> Action = girar(a)
-				; Action = girar(w)
-				)			
-			)	
-	).
+	direction(D),
+	girar(D, Action).
+
+girar(w, girar(d)).
+girar(d, girar(s)).
+girar(s, girar(a)).
+girar(a, girar(w)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -171,10 +171,10 @@ busqueda_plan(Plan, Destino, Costo):-
 		member(Type, Deseables)
 	), Metas), % nuevas metas
 
+	Metas \= [],
+
 	write('Metas: '),
 	write(Metas),
 	write('\n'),
 
  	buscar_plan_desplazamiento(Metas, Plan, Destino, Costo). % implementado en module_path_finding
-
-deseables([copa, cofre, diamante, pocion, reloj(_X)]).
