@@ -125,9 +125,9 @@ buscarEstrella(Frontera, Metas, Camino, Costo, Destino):-
 	
 buscar(Frontera, _, _M, NodoID):-%cambiado
 	write('EN BUSCAR 1:\n'),
-	write('Frontera: '),
-	write(Frontera),
-	write('\n'),
+	%write('Frontera: '),
+	%write(Frontera),
+	%write('\n'),
 
 	seleccionar([NodoID, _Costo], Frontera, _),
 
@@ -144,9 +144,9 @@ buscar(Frontera, _, _M, NodoID):-%cambiado
 
 buscar(Frontera, Visitados, Metas, MM):-
 	write('EN BUSCAR 2:\n'),
-	write('Frontera: '),
-	write(Frontera),
-	write('\n'),
+	%write('Frontera: '),
+	%write(Frontera),
+	%write('\n'),
 
 	seleccionar(Nodo, Frontera, FronteraSinNodo), % selecciona primer nodo de la frontera
 	
@@ -154,23 +154,23 @@ buscar(Frontera, Visitados, Metas, MM):-
 	write(Nodo),
 	write('\n'),
 
+	agregarAVisitados(Nodo, Visitados, NuevosVisitados), % agrega el nodo a lista de visitados
+
 	generarVecinos(Nodo, Vecinos), % genera los vecinos del nodo - TO-DO
 
-	write('Vecinos calculados: '),
-	write(Vecinos),
-	write('\n'),
-
-	agregarAVisitados(Nodo, Visitados, NuevosVisitados), % agrega el nodo a lista de visitados
+	%write('Vecinos calculados: '),
+	%write(Vecinos),
+	%write('\n'),
 	
 	agregar(FronteraSinNodo, Vecinos, NuevaFrontera, NuevosVisitados, VisitadosRevisados, Nodo, Metas), % agrega vecinos a la frontera - TO-DO
 	
-	write('Nueva Frontera: '),
-	write(NuevaFrontera),
-	write('\n'),
+	%write('Nueva Frontera: '),
+	%write(NuevaFrontera),
+	%write('\n'),
 
-	write('Visitados Revisados: '),
-	write(VisitadosRevisados),
-	write('\n'),
+	%write('Visitados Revisados: '),
+	%write(VisitadosRevisados),
+	%write('\n'),
 
 	%fail,
 
