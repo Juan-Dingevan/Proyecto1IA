@@ -80,7 +80,8 @@ buscar_plan_desplazamiento(Metas, Plan, Destino, Costo):-
 	write(Camino),
 	write('\n'),
 
-	crearPlan(Camino, Plan).
+	crearPlan(Camino, Plan),
+	retractall(padre(_, _)).
 	
 buscar_plan_desplazamiento(_, [], [], 0).
 
