@@ -88,12 +88,13 @@ update_at([At|Rest]):-
 % si el elemento coincide solo parcialmente (o sea, es un reloj que cambio de tiempo),
 % borramos y actualizamos
 update_at([At|Rest]):-
-	At = at(NodeID, Type, ObjID), 
-	at(NodeID, OldType, _),
+	At = at(NodeID, Type, NewObjID), 
+	at(NodeID, OldType, ObjID),
 	Type \= OldType,
+	Type \= agente,
 	!, 
-	retractall(at(NodeID, _, _)),
-	assert(at(NodeID, Type, ObjID)),
+	retractall(at(NodeID, OldType, ObjID)),
+	assert(at(NodeID, Type, NewObjID)),
 	update_at(Rest).
 
 % si el elemento no existe en las creencias, lo agregamos a ellas

@@ -335,9 +335,9 @@ asertarRelacionesPadreHijo(Padre, Hijos) :-
 %Nota: por ahora no hacemos revision de visitados.
 agregar(FronteraSinNodo, Vecinos, NuevaFrontera, Visitados, Visitados, Nodo, Metas) :-
 	eliminarVecinosVisitados(Vecinos, Visitados, VecinosSinVisitar),
-	eliminarVecinosYaEnFrontera(Vecinos, FronteraSinNodo, VecinosSinFrontera),
+	eliminarVecinosYaEnFrontera(VecinosSinVisitar, FronteraSinNodo, VecinosSinFrontera),
 	asertarRelacionesPadreHijo(Nodo, VecinosSinFrontera),
-	vecinosConFn(VecinosSinVisitar, Metas, VecinosConFn),
+	vecinosConFn(VecinosSinFrontera, Metas, VecinosConFn),
 	append(VecinosConFn, FronteraSinNodo, FronteraDesordenada),
 	ordenar_por_costo(FronteraDesordenada, NuevaFrontera).
 	

@@ -18,7 +18,6 @@
 ]).
 
 :- dynamic plandesplazamiento/1.
-:- dynamic firstmovementdone/1.
 :- dynamic cant_girar_seguidos/1.
 
 deseables([copa, cofre, diamante, reloj(_X), pocion]).
@@ -65,17 +64,6 @@ run(Perc, Action, Text, Beliefs):-
 	
 	findall(at(X, Y, Z), at(X, Y, Z), Beliefs).
 
-get_action(Action, Text) :-
-	not(firstmovementdone(_X)), !,
-	Text = 'Avanzar con nuevo plan...',
-	decide_action(Action, Text),
-	assert(firstmovementdone(1)).
-
-get_action(Action, Text) :-
-	firstmovementdone(_X), !,
-	Text = 'Avanzar...',
-	decide_action(Action, Text).
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TO-DO
@@ -99,14 +87,23 @@ get_action(Action, Text) :-
 % Esta implementación busca ser un marco para facilitar la resolución del proyecto.
 
 % Si estoy en la misma posición que una copa, intento levantarla.
-decide_action(Action, 'Quiero levantar una copa...') :-
+decide_action(Action, 'Quiero levantar algo...') :-
     at(MyNode, agente, me),
+	node(MyNode, PosX, PosY, _, _),
+
+	write('MyNode y posiciones\n'),
+
 	at(MyNode, Deseable, IdGold),
 	deseables(Deseables),
 	member(Deseable, Deseables),
-    node(MyNode, PosX, PosY, _, _),
-    Action = levantar_tesoro(IdGold, PosX, PosY),
-    retractall(at(MyNode, _, IdGold)),
+
+	write('Unifique Deseable e IdGold\n'),
+    
+	Action = levantar_tesoro(IdGold, PosX, PosY),
+
+	write('Unifique Action\n'),
+    
+	retractall(at(MyNode, _, IdGold)),
 	retractall(plandesplazamiento(_)),
 	
 	retractall(cant_girar_seguidos(_)),
