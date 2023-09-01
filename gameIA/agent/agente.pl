@@ -19,6 +19,7 @@
 
 :- dynamic plandesplazamiento/1.
 :- dynamic cant_girar_seguidos/1.
+:- yendo_a/1.
 
 deseables([copa, cofre, diamante, reloj(_X), pocion]).
 cant_girar_seguidos(0).
@@ -56,6 +57,10 @@ run(Perc, Action, Text, Beliefs):-
 	update_beliefs(Perc), % implementado en module_beliefs_update
 	decide_action(Action, Text),
 	
+	write('ESTOY EN: '),
+	at(MyNode, agente, me),
+	write(MyNode),
+	write(' - '),
 	write('ACCION ENVIADA: '),
 	write(Action),
 	write(' ('),
@@ -91,21 +96,16 @@ decide_action(Action, 'Quiero levantar algo...') :-
     at(MyNode, agente, me),
 	node(MyNode, PosX, PosY, _, _),
 
-	write('MyNode y posiciones\n'),
-
 	at(MyNode, Deseable, IdGold),
 	deseables(Deseables),
 	member(Deseable, Deseables),
-
-	write('Unifique Deseable e IdGold\n'),
     
 	Action = levantar_tesoro(IdGold, PosX, PosY),
-
-	write('Unifique Action\n'),
     
 	retractall(at(MyNode, _, IdGold)),
 	retractall(plandesplazamiento(_)),
-	
+	retractall(yendo_a(_)),
+
 	retractall(cant_girar_seguidos(_)),
 	assert(cant_girar_seguidos(0)).
 
@@ -114,6 +114,7 @@ decide_action(Action, 'Avanzar...'):-
 	plandesplazamiento(Plan),
 	length(Plan, LargoPlan),
 	LargoPlan > 0,
+	meta_buscada_sigue_ahi,
 	!,
 	obtenerMovimiento(Plan, Destino, Resto),
 	retractall(plandesplazamiento(_)),
@@ -137,7 +138,7 @@ decide_action(Action, 'Avanzar con nuevo plan...'):-
 decide_action(Action, 'Girar para conocer el territorio...'):-
 	cant_girar_seguidos(X),
 	X < 4,
-	
+	!,
 	% Si ya se giro 4 veces seguidas, se dio una vuelta completa (y presumiblemente no
 	% se encontraron metas posibles), por tanto se opta por fallar y por caer en el caso de
 	% movimiento alteatorio.
@@ -156,6 +157,7 @@ girar(a, girar(w)).
 
 % Me muevo a una posición vecina seleccionada de manera aleatoria.
 decide_action(Action, 'Me muevo a la posicion de al lado...'):-
+	not(plandesplazamiento(_)), %Si tengo un plan, nunca me muevo aleatoriamente.
 	at(MyNode, agente, me),
 	node(MyNode, _, _, _, AdyList),
 	length(AdyList, LenAdyList), LenAdyList > 0,
@@ -199,4 +201,18 @@ busqueda_plan(Plan, Destino, Costo):-
 	write(Metas),
 	write('\n'),
 
- 	buscar_plan_desplazamiento(Metas, Plan, Destino, Costo). % implementado en module_path_finding
+ 	buscar_plan_desplazamiento(Metas, Plan, Destino, Costo), % implementado en module_path_finding
+
+	assert(yendo_a(Destino)).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% meta_buscada_sigue_ahi
+%
+% Retorna verdadero si el deseable hacia el cual se construyo
+% un camino sigue estando donde estaba cuando se construyo tal
+% camino. Esto es, no "despawneo"
+%
+meta_buscada_sigue_ahi :-
+	yendo_a(MetaID),
+	at(MetaID, _, _).
