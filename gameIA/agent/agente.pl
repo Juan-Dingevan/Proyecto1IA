@@ -1,16 +1,16 @@
 :- use_module(module_beliefs_update, [
- 	update_beliefs/1,
- 	time/1,
- 	node/5,
+	update_beliefs/1,
+	time/1,
+	node/5,
 	at/3,
 	direction/1
 ]).
 
 :- use_module(module_path_finding, [
- 	buscar_plan_desplazamiento/4,
- 	raiz/1,
- 	padre/2,
- 	esMeta/1
+	buscar_plan_desplazamiento/4,
+	raiz/1,
+	padre/2,
+	esMeta/1
 ]).
 
 :- use_module(extras, [
@@ -19,7 +19,7 @@
 
 :- dynamic plandesplazamiento/1.
 :- dynamic cant_girar_seguidos/1.
-:- yendo_a/1.
+:- dynamic yendo_a/1.
 
 deseables([copa, cofre, diamante, reloj(_X), pocion]).
 cant_girar_seguidos(0).
@@ -30,20 +30,20 @@ cant_girar_seguidos(0).
 % El predicado run/4 implementa el comportamiento del agente.
 %
 % Es ejecutado automáticamente por el juego una vez por ciclo.
-% Implementa la interface con el mundo virtual, 
+% Implementa la interface con el mundo virtual,
 % recibiendo la información que el agente puede percibir del entorno
 % y permite hacer que el agente actue en el mundo virtual
 % No pueden cambiarse los parámetros, pero si el cuerpo.
-% 
+%
 % El primer parámetro (Perc) recibe una lista con la percepción del agente.
 % Los otros parámetros envían información al juego.
-% La idea es que el agente actualice su estado interno usando Perc, 
+% La idea es que el agente actualice su estado interno usando Perc,
 % y luego decida que acción hacer instanciándola en el parámetro Action.
 % Text es un texto con comillas simples como 'hola' que será mostrado en la pantalla del juego.
 % Beliefs es una lista con un subconjunto de creencias del agente, particularmente las que hacer referencia a objetos.
 %
 % El parámetro Perc recibe una lista con el siguiente formato: [N1,...,Nk,A1,...Ap,Time,Dir]
-% donde: 
+% donde:
 % N1 a Nk son k elementos (k>0) de la forma node(Id, PosX, PosY, Costo, Conexiones),
 % A1 a Ap son p elementos (p>0) de la forma at(IdNodo, TipoEntidad, IdEntidad),
 % Time es el functor time(T), donde T es el tiempo actual (descendente) de la partida.
@@ -56,7 +56,7 @@ cant_girar_seguidos(0).
 run(Perc, Action, Text, Beliefs):-
 	update_beliefs(Perc), % implementado en module_beliefs_update
 	decide_action(Action, Text),
-	
+
 	write('ESTOY EN: '),
 	at(MyNode, agente, me),
 	write(MyNode),
@@ -66,7 +66,7 @@ run(Perc, Action, Text, Beliefs):-
 	write(' ('),
 	write(Text),
 	write(')\n'),
-	
+
 	findall(at(X, Y, Z), at(X, Y, Z), Beliefs).
 
 
@@ -99,9 +99,9 @@ decide_action(Action, 'Quiero levantar algo...') :-
 	at(MyNode, Deseable, IdGold),
 	deseables(Deseables),
 	member(Deseable, Deseables),
-    
+
 	Action = levantar_tesoro(IdGold, PosX, PosY),
-    
+
 	retractall(at(MyNode, _, IdGold)),
 	retractall(plandesplazamiento(_)),
 	retractall(yendo_a(_)),
@@ -123,10 +123,10 @@ decide_action(Action, 'Avanzar...'):-
 
 	retractall(cant_girar_seguidos(_)),
 	assert(cant_girar_seguidos(0)).
-	
+
 % Si no tengo un plan guardado, busco uno nuevo.
 decide_action(Action, 'Avanzar con nuevo plan...'):-
- 	busqueda_plan(Plan, _Destino, _Costo),
+	busqueda_plan(Plan, _Destino, _Costo),
 	Plan \= [],
 	obtenerMovimiento(Plan, Action, Resto),
 	assert(plandesplazamiento(Resto)),
@@ -147,7 +147,7 @@ decide_action(Action, 'Girar para conocer el territorio...'):-
 	girar(D, Action),
 
 	retractall(cant_girar_seguidos(_)),
-	Y is X + 1
+	Y is X + 1,
 	assert(cant_girar_seguidos(Y)).
 
 girar(w, girar(d)).
@@ -164,7 +164,7 @@ decide_action(Action, 'Me muevo a la posicion de al lado...'):-
 	random_member([IdAdyNode, _CostAdyNode], AdyList),
 	!,
 	Action = avanzar(IdAdyNode),
-	
+
 	retractall(cant_girar_seguidos(_)),
 	assert(cant_girar_seguidos(0)).
 
@@ -173,7 +173,7 @@ decide_action(Action, 'Me muevo a la posicion de al lado...'):-
 % obtenerMovimiento(?Lista, ?Movimiento, ?Resto)
 %
 % Obtiene el primer movimiento de una lista de movimientos.
-% 
+%
 obtenerMovimiento([], [], []).
 obtenerMovimiento([X|Xs], X, Xs).
 
@@ -182,15 +182,15 @@ obtenerMovimiento([X|Xs], X, Xs).
 % busqueda_plan(-Plan, -Destino, -Costo)
 %
 % Busca un plan de desplazamiento hacia el tesoro que se encuentre mas cerca.
-%	
+%
 busqueda_plan(Plan, Destino, Costo):-
 	write('llegue a busqueda_plan\n'),
- 	retractall(plandesplazamiento(_)),
+	retractall(plandesplazamiento(_)),
 	retractall(esMeta(_)),
 
 	deseables(Deseables),
 
- 	findall(Nodo, (
+	findall(Nodo, (
 		at(Nodo, Type, _),
 		member(Type, Deseables)
 	), Metas), % nuevas metas
@@ -201,12 +201,12 @@ busqueda_plan(Plan, Destino, Costo):-
 	write(Metas),
 	write('\n'),
 
- 	buscar_plan_desplazamiento(Metas, Plan, Destino, Costo), % implementado en module_path_finding
+	buscar_plan_desplazamiento(Metas, Plan, Destino, Costo), % implementado en module_path_finding
 
 	assert(yendo_a(Destino)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
+%
 % meta_buscada_sigue_ahi
 %
 % Retorna verdadero si el deseable hacia el cual se construyo
