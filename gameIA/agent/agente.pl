@@ -150,11 +150,6 @@ decide_action(Action, 'Girar para conocer el territorio...'):-
 	Y is X + 1,
 	assert(cant_girar_seguidos(Y)).
 
-girar(w, girar(d)).
-girar(d, girar(s)).
-girar(s, girar(a)).
-girar(a, girar(w)).
-
 % Me muevo a una posición vecina seleccionada de manera aleatoria.
 decide_action(Action, 'Me muevo a la posicion de al lado...'):-
 	not(plandesplazamiento(_)), %Si tengo un plan, nunca me muevo aleatoriamente.
@@ -167,6 +162,11 @@ decide_action(Action, 'Me muevo a la posicion de al lado...'):-
 
 	retractall(cant_girar_seguidos(_)),
 	assert(cant_girar_seguidos(0)).
+
+girar(w, girar(d)).
+girar(d, girar(s)).
+girar(s, girar(a)).
+girar(a, girar(w)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %

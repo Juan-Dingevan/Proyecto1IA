@@ -321,6 +321,36 @@ asertarRelacionesPadreHijo(Padre, Hijos) :-
 		member([HijoID, _], Hijos)
 	), assert(padre(HijoID, PadreID))).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% revisarLista([+NodoID, +Costo], +Lista, -ListaRevisada)
+% Este predicado esta pensado para ser llamado tanto con la lista de vecinos como con la frontera
+% Si NodoID ya esta en la lista, pero con un costo mayor a Costo, se lo elimina de la lista.
+% Caso contrario, ListaRevisada es igual a Lista. 
+revisarLista([NodoID, _Costo], Lista, Lista) :-
+	not(member([NodoID, _], Lista)),
+	!.
+
+revisarLista([NodoID, Costo], Lista, ListaRevisada) :-
+	member([NodoID, CostoEnLista], Lista),
+	CostoEnLista > Costo,
+	!,
+	delete(Lista, [NodoID, CostoEnLista], ListaRevisada).
+
+revisarLista([_NodoID, _Costo], Lista, Lista).
+	% Por cuts sabemos que este es el caso en el cual
+	% NodoID esta en la lista, pero con costo menor o igual
+	% Asi que no se hace nada
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% revisarTodosLosVecinos(ListaVecinos, ListaARevisar, ListaRevisada)
+% Ejecuta revisarLista(X, ListaARevisar, ListaRevisada) sobre cada miembro
+% X de ListaVecinos
+revisarTodosLosVecinos([], ListaRevisada, ListaRevisada).
+
+revisarTodosLosVecinos([VecinoActual | Vecinos], ListaARevisar, ListaRevisada) :-
+	revisarLista(VecinoActual, ListaARevisar, ListaSemiRevisada),
+	revisarTodosLosVecinos(Vecinos, ListaSemiRevisada, ListaRevisada).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % agregar(+FronteraSinNodo, +Vecinos, -NuevaFrontera, +NuevosVisitados, -VisitadosRevisados, +Nodo, +Metas)
@@ -333,15 +363,12 @@ asertarRelacionesPadreHijo(Padre, Hijos) :-
 % Metas: Lista de ids de nodos metas.
 
 %Nota: por ahora no hacemos revision de visitados.
-agregar(FronteraSinNodo, Vecinos, NuevaFrontera, Visitados, Visitados, Nodo, Metas) :-
+agregar(FronteraSinNodo, Vecinos, NuevaFrontera, Visitados, VisitadosRevisados, Nodo, Metas) :-
 	eliminarVecinosVisitados(Vecinos, Visitados, VecinosSinVisitar),
 	eliminarVecinosYaEnFrontera(VecinosSinVisitar, FronteraSinNodo, VecinosSinFrontera),
+	revisarTodosLosVecinos(VecinosSinFrontera, Visitados, VisitadosRevisados),
+	revisarTodosLosVecinos(VecinosSinFrontera, FronteraSinNodo, FronteraSinNodoRevisada),
 	asertarRelacionesPadreHijo(Nodo, VecinosSinFrontera),
 	vecinosConFn(VecinosSinFrontera, Metas, VecinosConFn),
-	append(VecinosConFn, FronteraSinNodo, FronteraDesordenada),
+	append(VecinosConFn, FronteraSinNodoRevisada, FronteraDesordenada),
 	ordenar_por_costo(FronteraDesordenada, NuevaFrontera).
-	
-	%Estoy agregando nodos a la frontera varias veces: cuando genero los vecinos
-	% me fijo que no esten en visitados, pero no que no esten en la frontera.
-	% Idealmente, deberia fijarme que no esten con un costo inferior al que les calcule recien
-	% pero por ahora seria buena idea sencillamente podarlos de la frontera y ya.
