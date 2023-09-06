@@ -125,11 +125,13 @@ decide_action(Action, 'Avanzar...'):-
 	assert(cant_girar_seguidos(0)).
 
 % Si no tengo un plan guardado, busco uno nuevo.
-decide_action(Action, 'Avanzar con nuevo plan...'):-
+decide_action(Action, 'Calcular un nuevo plan...'):-
 	busqueda_plan(Plan, _Destino, _Costo),
 	Plan \= [],
-	obtenerMovimiento(Plan, Action, Resto),
-	assert(plandesplazamiento(Resto)),
+	!,
+	Action = noop,
+	obtenerMovimiento(Plan, _Action, _Resto),
+	assert(plandesplazamiento(Plan)),
 
 	retractall(cant_girar_seguidos(_)),
 	assert(cant_girar_seguidos(0)).
@@ -145,7 +147,6 @@ decide_action(Action, 'Girar para conocer el territorio...'):-
 
 	direction(D),
 	girar(D, Action),
-
 	retractall(cant_girar_seguidos(_)),
 	Y is X + 1,
 	assert(cant_girar_seguidos(Y)).
