@@ -185,7 +185,6 @@ obtenerMovimiento([X|Xs], X, Xs).
 % Busca un plan de desplazamiento hacia el tesoro que se encuentre mas cerca.
 %
 busqueda_plan(Plan, Destino, Costo):-
-	write('llegue a busqueda_plan\n'),
 	retractall(plandesplazamiento(_)),
 	retractall(esMeta(_)),
 
@@ -197,10 +196,6 @@ busqueda_plan(Plan, Destino, Costo):-
 	), Metas), % nuevas metas
 
 	Metas \= [],
-
-	write('Metas: '),
-	write(Metas),
-	write('\n'),
 
 	buscar_plan_desplazamiento(Metas, Plan, Destino, Costo), % implementado en module_path_finding
 

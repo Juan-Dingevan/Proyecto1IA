@@ -64,8 +64,6 @@ crearPlan(Camino, Plan):-
 %
 
 buscar_plan_desplazamiento(Metas, Plan, Destino, Costo):-
-	write('llegue a buscar_plan_desplazamiento\n'),
-	
 	forall(member(Meta, Metas), assert(esMeta(Meta))),
 	at(MyNode, agente, me),
 	length(Metas, CantMetas),
@@ -74,12 +72,6 @@ buscar_plan_desplazamiento(Metas, Plan, Destino, Costo):-
 	retractall(raiz(_)),
 	assert(raiz(MyNode)),
 	buscarEstrella([[MyNode, 0]], Metas, Camino, Costo, Destino),
-
-	write('sali de buscarEstrella\n'),
-	write('Camino = '),
-	write(Camino),
-	write('\n'),
-
 	crearPlan(Camino, Plan),
 	retractall(padre(_, _)).
 	
@@ -94,12 +86,6 @@ buscar_plan_desplazamiento(_, [], [], 0).
 	
 buscarEstrella(Frontera, Metas, Camino, Costo, Destino):-
 	buscar(Frontera, [], Metas, Destino),
-	
-	write('Sali de buscar/5 \n'),
-	write('Destino = '),
-	write(Destino),
-	write('\n'),
-
 	encontrarCamino(Destino, C),
 	append([Destino], C, C2),	
 	reverse(C2, C3),
@@ -123,56 +109,19 @@ buscarEstrella(Frontera, Metas, Camino, Costo, Destino):-
 % Agregar vecinos a frontera, con los cuidados necesarios de A*
 % y llama recursivmaente con la nueva frontera.
 	
-buscar(Frontera, _, _M, NodoID):-%cambiado
-	write('EN BUSCAR 1:\n'),
-	%write('Frontera: '),
-	%write(Frontera),
-	%write('\n'),
-
+buscar(Frontera, _, _M, NodoID):-
 	seleccionar([NodoID, _Costo], Frontera, _),
-
-	write('Nodo seleccionado: '),
-	write(NodoID),
-	write('\n'),
-
 	esMeta(NodoID),
-
-	write('Enhorabuena, es una meta!'),
-	write('\n'),
-
 	!.
 
 buscar(Frontera, Visitados, Metas, MM):-
-	write('EN BUSCAR 2:\n'),
-	%write('Frontera: '),
-	%write(Frontera),
-	%write('\n'),
-
 	seleccionar(Nodo, Frontera, FronteraSinNodo), % selecciona primer nodo de la frontera
-	
-	write('Nodo seleccionado: '),
-	write(Nodo),
-	write('\n'),
 
 	agregarAVisitados(Nodo, Visitados, NuevosVisitados), % agrega el nodo a lista de visitados
 
 	generarVecinos(Nodo, Vecinos), % genera los vecinos del nodo - TO-DO
-
-	%write('Vecinos calculados: '),
-	%write(Vecinos),
-	%write('\n'),
 	
 	agregar(FronteraSinNodo, Vecinos, NuevaFrontera, NuevosVisitados, VisitadosRevisados, Nodo, Metas), % agrega vecinos a la frontera - TO-DO
-	
-	%write('Nueva Frontera: '),
-	%write(NuevaFrontera),
-	%write('\n'),
-
-	%write('Visitados Revisados: '),
-	%write(VisitadosRevisados),
-	%write('\n'),
-
-	%fail,
 
 	buscar(NuevaFrontera, VisitadosRevisados, Metas, MM). % continua la busqueda con la nueva frontera
 
